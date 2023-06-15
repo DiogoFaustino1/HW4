@@ -35,7 +35,7 @@ mesh_dict = {
 
 # Generate the aerodynamic mesh based on the previous dictionary
 
-mesh = generate_mesh(mesh_dict)
+mesh, twist_cp = generate_mesh(mesh_dict)
 
 upper_x = np.array([0.1, 0.125, 0.15, 0.175, 0.2, 0.225, 0.25, 0.275, 0.3, 0.325, 0.35, 0.375, 0.4, 0.425, 0.45, 0.475, 0.5, 0.525, 0.55, 0.575, 0.6], dtype="complex128")
 lower_x = np.array([0.1, 0.125, 0.15, 0.175, 0.2, 0.225, 0.25, 0.275, 0.3, 0.325, 0.35, 0.375, 0.4, 0.425, 0.45, 0.475, 0.5, 0.525, 0.55, 0.575, 0.6], dtype="complex128")
@@ -58,13 +58,14 @@ surface = {
     "data_y_lower": lower_y,
     "spar_thickness_cp": np.array([0.004, 0.004, 0.004, 0.004]),  # [m]
     "skin_thickness_cp": np.array([0.003, 0.006, 0.010, 0.012]),  # [m]
+    "t_over_c_cp": np.array([0.08, 0.08, 0.10, 0.08]),
     "original_wingbox_airfoil_t_over_c": 0.12,
     "sweep": 30,
     "taper": 0.3,
     "AR": 8,
-    "twist_cp": np.zeros(10),
+    "twist_cp": np.array([4.0, 5.0, 8.0, 9.0]),  # [deg]
     "mesh": mesh,
-    "chord_cp" : np.ones(10),
+    #"chord_cp" : np.ones(10),
     # Aerodynamic performance of the lifting surface at an angle of attack of 0 (alpha=0).
     # These CL0 and CD0 values are added to the CL and CD obtained from aerodynamic analysis of the surface
     # to get the total CL and CD. These CL0 and CD0 values do not vary with alpha.
@@ -73,7 +74,7 @@ surface = {
  
     # Airfoil properties for viscous drag calculation VAMOS USAR A MERDA DO NASA LS(1)-0421
     "k_lam": 0.05,  # percentage of chord with laminar flow, used for viscous drag
-    "t_over_c_cp": np.array([0.12, 0.08, 0.06, 0.06, 0.05, 0.05, 0.04, 0.04, 0.03, 0.03]), # thickness over chord ratio
+    #"t_over_c_cp": np.array([0.12, 0.08, 0.06, 0.06, 0.05, 0.05, 0.04, 0.04, 0.03, 0.03]), # thickness over chord ratio
     "c_max_t": 0.4,  # chordwise location of maximum thickness
     "with_viscous": True,  # if true, compute viscous drag
     "with_wave": False,  # if true, compute wave drag
@@ -84,7 +85,6 @@ surface = {
     "yield": (420.0e6 / 2.5),  # [Pa] allowable yield stress
     "mrho": 2.78e3,  # [kg/m^3] material density
     "strength_factor_for_upper_skin": 1.0,  # the yield stress is multiplied by this factor for the upper skin
-    #"fem_origin": 0.35,
     "wing_weight_ratio": 1.25,
     "exact_failure_constraint": False,  # if false, use KS function
     "struct_weight_relief": True,
@@ -106,13 +106,13 @@ surface_tail = {
     "span": 2,
     "root_chord": 0.4,
     "fem_model_type": "tube", #ACHO QUE ISTO É MAIS ACCURATE DO QUE O TUBE
-    "spar_thickness_cp": np.array([0.004, 0.004, 0.004, 0.004]),  # [m]
-    "skin_thickness_cp": np.array([0.003, 0.006, 0.010, 0.012]),  # [m]
-    "original_wingbox_airfoil_t_over_c": 0.12,
+    "thickness_cp": np.array([0.1, 0.1, 0.1, 0.1]),  # [m]
+    "t_over_c_cp": np.array([0.1, 0.1, 0.10, 0.1]),
+    #"original_wingbox_airfoil_t_over_c": 0.12,
     #"sweep": 30,
     #"taper": 0.3,
     #"AR": 8,
-    "twist_cp": np.zeros(10),
+    #"twist_cp": np.zeros(10),
     "mesh": mesh,
     #"chord_cp" : np.ones(10),
     # Aerodynamic performance of the lifting surface at an angle of attack of 0 (alpha=0).
@@ -138,7 +138,7 @@ surface_tail = {
     #"wing_weight_ratio": 1.25,
     "exact_failure_constraint": False,  # if false, use KS function
     "struct_weight_relief": True,
-    #"distributed_fuel_weight": True,
+    "distributed_fuel_weight": True,
     #"n_point_masses": 1,  # number of point masses in the system; in this case, the engine (omit option if no point masses)
     #"fuel_density": 803.0,  # [kg/m^3] fuel density (only needed if the fuel-in-wing volume constraint is used)
     #"Wf_reserve": 500.0,  # [kg] reserve fuel mass
@@ -189,8 +189,6 @@ for i in range(2):
 
     prob.model.add_subsystem(point_name, AS_point)
 
-    # docs checkpoint 15
-
     # Connect flow properties to the analysis point
     prob.model.connect("v", point_name + ".v", src_indices=[i])
     prob.model.connect("Mach_number", point_name + ".Mach_number", src_indices=[i])
@@ -204,8 +202,6 @@ for i in range(2):
     prob.model.connect("load_factor", point_name + ".load_factor", src_indices=[i])
     prob.model.connect("fuel_mass", point_name + ".total_perf.L_equals_W.fuelburn")
     prob.model.connect("fuel_mass", point_name + ".total_perf.CG.fuelburn")
-
-    # docs checkpoint 16
 
     for i in surfaces:
         name = i["name"]

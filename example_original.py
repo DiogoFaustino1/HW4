@@ -38,12 +38,12 @@ mesh_dict = {
 mesh, twist_cp = generate_mesh(mesh_dict)
 
 # docs checkpoint 3
- 
+
 surf_dict = {
     # Wing definition
     "name": "wing",  # give the surface some name
     "symmetry": True,  # if True, model only one half of the lifting surface
-    "S_ref_type": "wetted",  # how we compute the wing area,
+    "S_ref_type": "projected",  # how we compute the wing area,
     # can be 'wetted' or 'projected'
     "mesh": mesh,
     "fem_model_type": "wingbox",  # 'wingbox' or 'tube'
@@ -52,7 +52,6 @@ surf_dict = {
     "data_y_upper": upper_y,
     "data_y_lower": lower_y,
     # docs checkpoint 4
-    "span": 10,
     "twist_cp": np.array([4.0, 5.0, 8.0, 9.0]),  # [deg]
     "spar_thickness_cp": np.array([0.004, 0.005, 0.008, 0.01]),  # [m]
     "skin_thickness_cp": np.array([0.005, 0.01, 0.015, 0.025]),  # [m]
@@ -73,7 +72,6 @@ surf_dict = {
     "k_lam": 0.05,  # fraction of chord with laminar
     # flow, used for viscous drag
     "c_max_t": 0.38,  # chordwise location of maximum thickness
-    "fem_origin": 0.35,
     # docs checkpoint 6
     # Structural values are based on aluminum 7075
     "E": 73.1e9,  # [Pa] Young's modulus
@@ -92,55 +90,7 @@ surf_dict = {
     "Wf_reserve": 15000.0,  # [kg] reserve fuel mass
 }
 
-# Create a dictionary to store options about the surface
-mesh_dict = {"num_y": 7, "num_x": 2, "wing_type": "rect", "symmetry": True, "offset": np.array([50, 0.0, 0.0])}
-
-mesh = generate_mesh(mesh_dict)
-
-surf_dict2 = {
-    # Wing definition
-    "name": "tail",  # give the surface some name
-    "symmetry": True,  # if True, model only one half of the lifting surface
-    "S_ref_type": "wetted",  # how we compute the wing area,
-    # can be 'wetted' or 'projected'
-    "mesh": mesh,
-    "span": 1,
-    "fem_model_type": "tube",  # 'wingbox' or 'tube'
-    # docs checkpoint 4
-    #"twist_cp": twist_cp,  # [deg]
-    "thickness_cp": np.array([0.1, 0.1, 0.1, 0.1]),  # [m]
-    "t_over_c_cp": np.array([0.1, 0.1, 0.10, 0.1]),
-    #"thickness": np.array([0.08, 0.08, 0.10, 0.08]),
-    # docs checkpoint 5
-    # Aerodynamic deltas.
-    # These CL0 and CD0 values are added to the CL and CD
-    # obtained from aerodynamic analysis of the surface to get
-    # the total CL and CD.
-    # These CL0 and CD0 values do not vary wrt alpha.
-    # They can be used to account for things that are not included, such as contributions from the fuselage, camber, etc.
-    "CL0": 0.0,  # CL delta
-    "CD0": 0.0078,  # CD delta
-    "with_viscous": True,  # if true, compute viscous drag
-    "with_wave": True,  # if true, compute wave drag
-    # Airfoil properties for viscous drag calculation
-    "k_lam": 0.05,  # fraction of chord with laminar
-    # flow, used for viscous drag
-    "c_max_t": 0.38,  # chordwise location of maximum thickness
-    "fem_origin": 0.35,
-    # docs checkpoint 6
-    # Structural values are based on aluminum 7075
-    "E": 73.1e9,  # [Pa] Young's modulus
-    "G": (73.1e9 / 2 / 1.33),  # [Pa] shear modulus (calculated using E and the Poisson's ratio here)
-    "yield": (420.0e6 / 1.5),  # [Pa] allowable yield stress
-    "mrho": 2.78e3,  # [kg/m^3] material density
-    "strength_factor_for_upper_skin": 1.0,  # the yield stress is multiplied by this factor for the upper skin
-    "wing_weight_ratio": 1.25,    
-    "struct_weight_relief": True,
-    "distributed_fuel_weight": True,
-    "exact_failure_constraint": False,  # if false, use KS function
-}
-
-surfaces = [surf_dict,surf_dict2]
+surfaces = [surf_dict]
 
 # docs checkpoint 9
 
@@ -248,7 +198,7 @@ for i in range(2):
         )
         prob.model.connect(name + ".nodes", point_name + ".coupled." + name + ".nodes")
 
-        # Connect aerodynamic mesh to coupled group mesh
+        # Connect aerodyamic mesh to coupled group mesh
         prob.model.connect(name + ".mesh", point_name + ".coupled." + name + ".mesh")
         if surf_dict["struct_weight_relief"]:
             prob.model.connect(name + ".element_mass", point_name + ".coupled." + name + ".element_mass")
