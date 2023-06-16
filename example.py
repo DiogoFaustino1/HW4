@@ -22,8 +22,6 @@ upper_y = np.array([ 0.0447,  0.046,  0.0472,  0.0484,  0.0495,  0.0505,  0.0514
 lower_y = np.array([-0.0447, -0.046, -0.0473, -0.0485, -0.0496, -0.0506, -0.0515, -0.0524, -0.0532, -0.054, -0.0547, -0.0554, -0.056, -0.0565, -0.057, -0.0575, -0.0579, -0.0583, -0.0586, -0.0589, -0.0592, -0.0594, -0.0595, -0.0596, -0.0597, -0.0598, -0.0598, -0.0598, -0.0598, -0.0597, -0.0596, -0.0594, -0.0592, -0.0589, -0.0586, -0.0582, -0.0578, -0.0573, -0.0567, -0.0561, -0.0554, -0.0546, -0.0538, -0.0529, -0.0519, -0.0509, -0.0497, -0.0485, -0.0472, -0.0458, -0.0444], dtype="complex128")
 # fmt: on
 
-# docs checkpoint 2
-
 # Create a dictionary to store options about the surface
 mesh_dict = {
     "num_y": 15,
@@ -36,14 +34,12 @@ mesh_dict = {
 }
 
 mesh, twist_cp = generate_mesh(mesh_dict)
-
-# docs checkpoint 3
  
 surf_dict = {
     # Wing definition
     "name": "wing",  # give the surface some name
     "symmetry": True,  # if True, model only one half of the lifting surface
-    "S_ref_type": "wetted",  # how we compute the wing area,
+    "S_ref_type": "projected",  # how we compute the wing area,
     # can be 'wetted' or 'projected'
     "mesh": mesh,
     "fem_model_type": "wingbox",  # 'wingbox' or 'tube'
@@ -85,7 +81,7 @@ surf_dict = {
     "exact_failure_constraint": False,  # if false, use KS function
     # docs checkpoint 7
     "struct_weight_relief": True,
-    "distributed_fuel_weight": True,
+    "distributed_fuel_weight": False,
     "n_point_masses": 1,  # number of point masses in the system; in this case, the engine (omit option if no point masses)
     # docs checkpoint 8
     "fuel_density": 803.0,  # [kg/m^3] fuel density (only needed if the fuel-in-wing volume constraint is used)
@@ -101,15 +97,21 @@ surf_dict2 = {
     # Wing definition
     "name": "tail",  # give the surface some name
     "symmetry": True,  # if True, model only one half of the lifting surface
-    "S_ref_type": "wetted",  # how we compute the wing area,
+    "S_ref_type": "projected",  # how we compute the wing area,
     # can be 'wetted' or 'projected'
     "mesh": mesh,
     "span": 1,
-    "fem_model_type": "tube",  # 'wingbox' or 'tube'
+    "fem_model_type": "wingbox",  # 'wingbox' or 'tube'
+    "data_x_upper": upper_x,
+    "data_x_lower": lower_x,
+    "data_y_upper": upper_y,
+    "data_y_lower": lower_y,
     # docs checkpoint 4
     #"twist_cp": twist_cp,  # [deg]
-    "thickness_cp": np.array([0.1, 0.1, 0.1, 0.1]),  # [m]
-    "t_over_c_cp": np.array([0.1, 0.1, 0.10, 0.1]),
+    "spar_thickness_cp": np.array([0.004, 0.005, 0.008, 0.01]),  # [m]
+    "skin_thickness_cp": np.array([0.005, 0.01, 0.015, 0.025]),  # [m]
+    "t_over_c_cp": np.array([0.08, 0.08, 0.10, 0.08]),
+    "original_wingbox_airfoil_t_over_c": 0.12,
     #"thickness": np.array([0.08, 0.08, 0.10, 0.08]),
     # docs checkpoint 5
     # Aerodynamic deltas.
@@ -126,7 +128,7 @@ surf_dict2 = {
     "k_lam": 0.05,  # fraction of chord with laminar
     # flow, used for viscous drag
     "c_max_t": 0.38,  # chordwise location of maximum thickness
-    "fem_origin": 0.35,
+    #"fem_origin": 0.35,
     # docs checkpoint 6
     # Structural values are based on aluminum 7075
     "E": 73.1e9,  # [Pa] Young's modulus
@@ -136,7 +138,7 @@ surf_dict2 = {
     "strength_factor_for_upper_skin": 1.0,  # the yield stress is multiplied by this factor for the upper skin
     "wing_weight_ratio": 1.25,    
     "struct_weight_relief": True,
-    "distributed_fuel_weight": True,
+    "distributed_fuel_weight": False,
     "exact_failure_constraint": False,  # if false, use KS function
 }
 
@@ -234,8 +236,6 @@ for i in range(2):
     prob.model.connect("fuel_mass", point_name + ".total_perf.L_equals_W.fuelburn")
     prob.model.connect("fuel_mass", point_name + ".total_perf.CG.fuelburn")
 
-    # docs checkpoint 16
-
     for surface in surfaces:
         name = surface["name"]
 
@@ -271,8 +271,9 @@ for i in range(2):
         prob.model.connect(name + ".t_over_c", com_name + "t_over_c")
 
         coupled_name = point_name + ".coupled." + name
-        prob.model.connect("point_masses", coupled_name + ".point_masses")
-        prob.model.connect("point_mass_locations", coupled_name + ".point_mass_locations")
+        if name == "wing":
+            prob.model.connect("point_masses", coupled_name + ".point_masses")
+            prob.model.connect("point_mass_locations", coupled_name + ".point_mass_locations")
 
 
 # docs checkpoint 17
@@ -282,8 +283,8 @@ prob.model.connect("alpha_maneuver", "AS_point_1" + ".alpha")
 
 # docs checkpoint 18
 
-# Here we add the fuel volume constraint componenet to the model
-prob.model.add_subsystem("fuel_vol_delta", WingboxFuelVolDelta(surface=surface))
+# Here we add the fuel volume constraint component to the model
+prob.model.add_subsystem("fuel_vol_delta", WingboxFuelVolDelta(surface=surf_dict))
 prob.model.connect("wing.struct_setup.fuel_vols", "fuel_vol_delta.fuel_vols")
 prob.model.connect("AS_point_0.fuelburn", "fuel_vol_delta.fuelburn")
 

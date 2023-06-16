@@ -48,7 +48,7 @@ surface = {
     # Wing definition
     "name": "wing",  # name of the surface
     "symmetry": True,  # if true, model one half of wing reflected across the plane y = 0
-    "S_ref_type": "wetted",  # how we compute the wing area, can be 'wetted' or 'projected' ACHO QUE ISTO É MAIS ACCURATE DO QUE O PROJECTED
+    "S_ref_type": "projected",  # how we compute the wing area, can be 'wetted' or 'projected' ACHO QUE ISTO É MAIS ACCURATE DO QUE O PROJECTED
     "span": 23.24,
     "root_chord": (1.0),
     "fem_model_type": "wingbox", #ACHO QUE ISTO É MAIS ACCURATE DO QUE O TUBE
@@ -102,12 +102,18 @@ surface_tail = {
     # Wing definition
     "name": "tail",  # name of the surface
     "symmetry": True,  # if true, model one half of wing reflected across the plane y = 0
-    "S_ref_type": "wetted",  # how we compute the wing area, can be 'wetted' or 'projected' ACHO QUE ISTO É MAIS ACCURATE DO QUE O PROJECTED
+    "S_ref_type": "projected",  # how we compute the wing area, can be 'wetted' or 'projected' ACHO QUE ISTO É MAIS ACCURATE DO QUE O PROJECTED
     "span": 2,
     "root_chord": 0.4,
-    "fem_model_type": "tube", #ACHO QUE ISTO É MAIS ACCURATE DO QUE O TUBE
-    "thickness_cp": np.array([0.1, 0.1, 0.1, 0.1]),  # [m]
-    "t_over_c_cp": np.array([0.1, 0.1, 0.10, 0.1]),
+    "fem_model_type": "wingbox", #ACHO QUE ISTO É MAIS ACCURATE DO QUE O TUBE
+    "data_x_upper": upper_x,
+    "data_x_lower": lower_x,
+    "data_y_upper": upper_y,
+    "data_y_lower": lower_y,
+    "spar_thickness_cp": np.array([0.004, 0.004, 0.004, 0.004]),  # [m]
+    "skin_thickness_cp": np.array([0.003, 0.006, 0.010, 0.012]),  # [m]
+    "t_over_c_cp": np.array([0.08, 0.08, 0.10, 0.08]),
+    "original_wingbox_airfoil_t_over_c": 0.12,
     #"original_wingbox_airfoil_t_over_c": 0.12,
     #"sweep": 30,
     #"taper": 0.3,
@@ -134,7 +140,7 @@ surface_tail = {
     "yield": (420.0e6 / 2.5),  # [Pa] allowable yield stress
     "mrho": 2.78e3,  # [kg/m^3] material density
     "strength_factor_for_upper_skin": 1.0,  # the yield stress is multiplied by this factor for the upper skin
-    "fem_origin": 0.35,
+    #"fem_origin": 0.35,
     #"wing_weight_ratio": 1.25,
     "exact_failure_constraint": False,  # if false, use KS function
     "struct_weight_relief": True,
@@ -253,7 +259,7 @@ prob.model.connect("span", "wing.span")
 prob.model.add_constraint("sweep_times_span", lower=0, upper=1)
 
 # Add the design variables, constraint, and objective to the problem
-prob.model.add_design_var("wing.chord_cp", lower=0.5, upper=1)
+#prob.model.add_design_var("wing.chord_cp", lower=0.5, upper=1)
 prob.model.add_design_var("wing.twist_cp", lower=-15.0, upper=15.0)
 prob.model.add_design_var("alpha", lower=-50.0, upper=50.0)
 prob.model.add_design_var("wing.sweep", lower=0, upper=40)
