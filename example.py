@@ -3,6 +3,7 @@ from openaerostruct.geometry.utils import generate_mesh
 from openaerostruct.integration.aerostruct_groups import AerostructGeometry, AerostructPoint
 from openaerostruct.structures.wingbox_fuel_vol_delta import WingboxFuelVolDelta
 import openmdao.api as om
+from openaerostruct.aerodynamics.lift_coeff_2D import LiftCoeff2D
 
 # Provide coordinates for a portion of an airfoil for the wingbox cross-section as an nparray with dtype=complex (to work with the complex-step approximation for derivatives).
 # These should be for an airfoil with the chord scaled to 1.
@@ -157,6 +158,7 @@ indep_var_comp.add_output("sweep", 30, units="deg")
 indep_var_comp.add_output("span", 23.24, units="m")
 indep_var_comp.add_output("dihedral", 5, units="deg")
 indep_var_comp.add_output("taper", 0.3)
+#indep_var_comp.add_output("sectional_Cl", 0)
 prob.model.connect("sweep", "wing.sweep")
 prob.model.connect("span", "wing.geometry.span")
 prob.model.connect("taper", "wing.taper")
@@ -174,6 +176,8 @@ point_mass_locations = np.array([[2, 4.0, 0.0]])
 
 indep_var_comp.add_output("point_masses", val=point_masses, units="kg")
 indep_var_comp.add_output("point_mass_locations", val=point_mass_locations, units="m")
+
+
 
 # Compute the actual W0 to be used within OAS based on the sum of the point mass and other W0 weight
 prob.model.add_subsystem(
@@ -254,6 +258,8 @@ for i in range(2):
             prob.model.connect("point_masses", coupled_name + ".point_masses")
             prob.model.connect("point_mass_locations", coupled_name + ".point_mass_locations")
 
+prob.model.add_subsystem("Cl", LiftCoeff2D(surface=surf_dict), promotes_outputs=["Cl"])
+prob.model.add_constraint("Cl", lower=0, upper=0.6)
 
 prob.model.connect("alpha", "AS_point_0" + ".alpha")
 prob.model.connect("alpha_maneuver", "AS_point_1" + ".alpha")
@@ -299,8 +305,9 @@ prob.model.add_design_var("fuel_mass", lower=1000.0, upper=2e5, scaler=1e-5)
 prob.model.add_constraint("fuel_diff", equals=0.0)
 
 prob.driver = om.ScipyOptimizeDriver()
-prob.driver.options["optimizer"] = "SLSQP"
-prob.driver.options["tol"] = 1e-2
+prob.driver.options["optimizer"] = "trust-constr" #['SLSQP', 'trust-constr', 'Nelder-Mead']
+prob.driver.options["tol"] = 1e-9
+prob.driver.options["maxiter"] = 10000
 
 recorder = om.SqliteRecorder("aerostruct.db")
 prob.driver.add_recorder(recorder)

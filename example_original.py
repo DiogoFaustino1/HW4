@@ -6,6 +6,7 @@ from openaerostruct.geometry.utils import generate_mesh
 from openaerostruct.integration.aerostruct_groups import AerostructGeometry, AerostructPoint
 from openaerostruct.structures.wingbox_fuel_vol_delta import WingboxFuelVolDelta
 import openmdao.api as om
+from openaerostruct.aerodynamics.lift_coeff_2D import LiftCoeff2D
 
 # docs checkpoint 1
 
@@ -224,6 +225,8 @@ for i in range(2):
         prob.model.connect("point_masses", coupled_name + ".point_masses")
         prob.model.connect("point_mass_locations", coupled_name + ".point_mass_locations")
 
+prob.model.add_subsystem("Cl", LiftCoeff2D(surface=surf_dict), promotes_outputs=["Cl"])
+#prob.model.add_constraint("Cl", lower=0, upper=0.6)
 
 # docs checkpoint 17
 
@@ -232,7 +235,7 @@ prob.model.connect("alpha_maneuver", "AS_point_1" + ".alpha")
 
 # docs checkpoint 18
 
-# Here we add the fuel volume constraint componenet to the model
+# Here we add the fuel volume constraint component to the model
 prob.model.add_subsystem("fuel_vol_delta", WingboxFuelVolDelta(surface=surface))
 prob.model.connect("wing.struct_setup.fuel_vols", "fuel_vol_delta.fuel_vols")
 prob.model.connect("AS_point_0.fuelburn", "fuel_vol_delta.fuelburn")
