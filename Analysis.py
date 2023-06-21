@@ -186,7 +186,7 @@ for i in surfaces:
     prob.model.add_subsystem(name, aerostruct_group)
 
 # Create the aero point group, which contains the actual aerodynamic analyses
-for i in range(2):
+for i in range(1):
     point_name = "AS_point_{}".format(i)
     # Connect the parameters within the model for each aero point
 
@@ -261,7 +261,7 @@ prob.driver.recording_options['includes'] = ['*']
 prob.setup()
 
 # Run the optimization
-prob.run_driver()
+#prob.run_driver()
 
 # Output the results
 print("alpha =", prob["alpha"])
