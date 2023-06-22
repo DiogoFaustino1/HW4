@@ -79,7 +79,7 @@ surf_dict = {
     "n_point_masses": 1,  # number of point masses in the system; in this case, the engine (omit option if no point masses)
     "fuel_density": 803.0,  # [kg/m^3] fuel density (only needed if the fuel-in-wing volume constraint is used)
     "Wf_reserve": 1125.0,  # [kg] reserve fuel mass
-    #"monotonic_con_twist_cp": True,
+    "monotonic_con_twist_cp": True,
     #"monotonic_con_chord_cp": True,
 }
 
@@ -96,6 +96,7 @@ surf_dict2 = {
     # can be 'wetted' or 'projected'
     "mesh": mesh,
     "span": 8,
+    "taper": 0.3,
     "fem_model_type": "wingbox",  # 'wingbox' or 'tube'
     "data_x_upper": upper_x,
     "data_x_lower": lower_x,
@@ -132,7 +133,7 @@ surf_dict2 = {
     "struct_weight_relief": True,
     "distributed_fuel_weight": False,
     "exact_failure_constraint": False,  # if false, use KS function
-    #"monotonic_con_twist_cp": True,
+    "monotonic_con_twist_cp": True,
     #"monotonic_con_chord_cp": True,
 }
 
@@ -150,7 +151,7 @@ indep_var_comp.add_output(
     val=np.array([0.3796 * 296.54 * 0.78 * 1.0 / (1.43 * 1e-5), 1.225 * 340.294 * 0.64 * 1.0 / (1.81206 * 1e-5)]),
     units="1/m",
 )
-indep_var_comp.add_output("rho", val=np.array([0.3796, 1.225]), units="kg/m**3") ##############################
+indep_var_comp.add_output("rho", val=np.array([0.3796, 1.225]), units="kg/m**3") 
 indep_var_comp.add_output("speed_of_sound", val=np.array([296.54, 340.294]), units="m/s")
 
 indep_var_comp.add_output("CT", val=0.38 / 3600, units="1/s")
@@ -165,10 +166,12 @@ indep_var_comp.add_output("span", 23.24, units="m")
 indep_var_comp.add_output("tail_span", 8, units="m")
 indep_var_comp.add_output("dihedral", 5, units="deg")
 indep_var_comp.add_output("taper", 0.3)
+indep_var_comp.add_output("tail_taper", 0.3)
 prob.model.connect("sweep", "wing.sweep")
 prob.model.connect("span", "wing.geometry.span")
 prob.model.connect("tail_span", "tail.geometry.span")
 prob.model.connect("taper", "wing.taper")
+prob.model.connect("tail_taper", "tail.taper")
 prob.model.connect("dihedral", "wing.geometry.dihedral")
 
 indep_var_comp.add_output("empty_cg", val=np.zeros((3)), units="m")
@@ -289,6 +292,7 @@ prob.model.connect("AS_point_0.fuelburn", "fuel_diff.fuelburn")
 prob.model.add_objective("AS_point_0.fuelburn", scaler=1e-3)
 
 prob.model.add_design_var("wing.taper", lower=0, upper=1)
+prob.model.add_design_var("tail.taper", lower=0, upper=1)
 prob.model.add_design_var("wing.twist_cp", lower=np.array([[0, -5, -10, -15]]), upper=np.array([[0, 5, 10, 15]]), scaler=0.1)
 #prob.model.add_design_var("tail.taper", lower=0, upper=1)
 #prob.model.add_design_var("tail.twist_cp", lower=np.array([[0, -5, -10, -15]]), upper=np.array([[0, 5, 10, 15]]), scaler=0.1)
@@ -296,7 +300,7 @@ prob.model.add_design_var("wing.spar_thickness_cp", lower=0.003, upper=0.1, scal
 prob.model.add_design_var("wing.skin_thickness_cp", lower=0.003, upper=0.1, scaler=1e2)
 prob.model.add_design_var("wing.sweep", lower=0, upper=40)
 prob.model.add_design_var("wing.geometry.span", lower=0.1, upper=30)
-#prob.model.add_design_var("tail.geometry.span", lower=0.1, upper=12)
+prob.model.add_design_var("tail.geometry.span", lower=0.1, upper=12)
 prob.model.add_design_var("wing.geometry.dihedral", lower=-10, upper=10)
 prob.model.add_design_var("wing.geometry.t_over_c_cp", lower=0.07, upper=0.2, scaler=10.0)
 prob.model.add_design_var("alpha_maneuver", lower=-15.0, upper=15)
@@ -363,8 +367,8 @@ prob.driver.recording_options["record_inputs"] = True
 prob.setup()
 
 # change linear solver for aerostructural coupled adjoint
-prob.model.AS_point_0.coupled.linear_solver = om.LinearBlockGS(iprint=0, maxiter=30, use_aitken=True)
-prob.model.AS_point_1.coupled.linear_solver = om.LinearBlockGS(iprint=0, maxiter=30, use_aitken=True)
+prob.model.AS_point_0.coupled.linear_solver = om.LinearBlockGS(iprint=0, maxiter=100, use_aitken=True)
+prob.model.AS_point_1.coupled.linear_solver = om.LinearBlockGS(iprint=0, maxiter=100, use_aitken=True)
 
 #om.view_model(prob)
 
@@ -386,6 +390,7 @@ print("sweep =", prob["wing.geometry.sweep"])
 print("dihedral =", prob["wing.geometry.dihedral"])
 print("span =", prob["wing.geometry.span"])
 print("taper =", prob["wing.taper"])
+print("tail taper =", prob["tail.taper"])
 print("tail span =", prob["tail.geometry.span"])
 print("thickness over chord =", prob["wing.geometry.t_over_c_cp"])
 print("twist_cp =", prob["wing.twist_cp"])
