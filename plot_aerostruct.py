@@ -27,7 +27,7 @@ for case in driver_cases:
     va1_values.append(case['tail.twist_cp']) # 5
     va2_values.append(case['wing.geometry.span']) # 3
     co1_values.append(case['AS_point_0.wing_perf.failure'])
-    co2_values.append(case['alpha_maneuver']) # 3
+    co2_values.append(case['AS_point_0.total_weight']) # 3
     va3_values.append(case['alpha'])
     co3_values.append(case['AS_point_0.L_equals_W'])
     obj_values.append(case['AS_point_0.fuelburn'])

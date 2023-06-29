@@ -27,8 +27,8 @@ mesh_dict = {
     "num_x": 3,
     "wing_type": "rect",
     "symmetry": True,
-    "root_chord": 3.0,
-    "num_twist_cp": 4,
+    "root_chord": 7.0,
+    "num_chord_cp" : 3
 }
 
 mesh = generate_mesh(mesh_dict)
@@ -45,16 +45,15 @@ surf_dict = {
     "data_x_lower": lower_x,
     "data_y_upper": upper_y,
     "data_y_lower": lower_y,
-    "twist_cp": np.array([0.0, 0.0, 0.0, 0.0]),  # [deg]
+    "twist_cp": np.array([4.0, 3.0, 2.0, 0.0]),  # [deg]
     "span": 23.24,
-    "root_chord": 3.0,
-    #"chord_cp" : np.ones(10),
+    "root_chord": 7.0,
+    "chord_cp" : np.ones(3),
     "spar_thickness_cp": np.array([0.01, 0.008, 0.005, 0.004]),  # [m]
     "skin_thickness_cp": np.array([0.025, 0.015, 0.01, 0.005]),  # [m]
     "t_over_c_cp": np.array([0.12]),
     "original_wingbox_airfoil_t_over_c": 0.12,
     "sweep": 30,
-    "taper": 0.3,
     "AR": 8,
     # Aerodynamic deltas.
     # These CL0 and CD0 values are added to the CL and CD
@@ -89,7 +88,8 @@ surf_dict = {
 
 # Create a dictionary to store options about the surface
 mesh_dict = {"num_y": 7, "num_x": 2, "wing_type": "rect", "symmetry": True, 
-    "root_chord": 1.5, 
+    "root_chord": 2,
+    "num_chord_cp" : 3,
     "offset": np.array([10, 0.0, 1.0])}
 
 mesh = generate_mesh(mesh_dict)
@@ -102,15 +102,14 @@ surf_dict2 = {
     # can be 'wetted' or 'projected'
     "mesh": mesh,
     "span": 10,
-    "taper": 0.7,
-    "root_chord": 1.5,
+    "root_chord": 2,
+    "chord_cp" : np.ones(3),
     "fem_model_type": "wingbox",  # 'wingbox' or 'tube'
     "data_x_upper": upper_x,
     "data_x_lower": lower_x,
     "data_y_upper": upper_y,
     "data_y_lower": lower_y,
-    "twist_cp": np.array([-5.0, -5.0, -5.0, -5.0]),  # [deg]
-    #"chord_cp" : np.ones(10),
+    "twist_cp": np.array([-7.0, -8.0, -5.0, -5.0]),  # [deg]
     "spar_thickness_cp": np.array([0.01, 0.008, 0.005, 0.004]),  # [m]
     "skin_thickness_cp": np.array([0.025, 0.015, 0.01, 0.005]),  # [m]
     "t_over_c_cp": np.array([0.12]),
@@ -139,6 +138,8 @@ surf_dict2 = {
     "wing_weight_ratio": 1.25,    
     "struct_weight_relief": True,
     "distributed_fuel_weight": False,
+    #"fuel_density": 803.0,  # [kg/m^3] fuel density (only needed if the fuel-in-wing volume constraint is used)
+    #"Wf_reserve": 0.0,  # [kg] reserve fuel mass
     "exact_failure_constraint": False,  # if false, use KS function
     "monotonic_con_twist_cp": True,
     #"monotonic_con_chord_cp": True,
@@ -166,18 +167,14 @@ indep_var_comp.add_output("R", val=3.120e6, units="m")
 indep_var_comp.add_output("W0_without_point_masses", val=19731 + surf_dict["Wf_reserve"], units="kg")
 
 indep_var_comp.add_output("load_factor", val=np.array([1.0, 2.5]))
-indep_var_comp.add_output("alpha", val=5.0, units="deg")
-indep_var_comp.add_output("alpha_maneuver", val=5.0, units="deg")
+indep_var_comp.add_output("alpha", val=0.0, units="deg")
+indep_var_comp.add_output("alpha_maneuver", val=6.7, units="deg")
 indep_var_comp.add_output("sweep", 30, units="deg")
 indep_var_comp.add_output("span", 23.24, units="m")
 indep_var_comp.add_output("tail_span", 10, units="m")
-indep_var_comp.add_output("taper", 0.3)
-indep_var_comp.add_output("tail_taper", 0.3)
 prob.model.connect("sweep", "wing.sweep")
 prob.model.connect("span", "wing.geometry.span")
 prob.model.connect("tail_span", "tail.geometry.span")
-prob.model.connect("taper", "wing.taper")
-prob.model.connect("tail_taper", "tail.taper")
 
 indep_var_comp.add_output("empty_cg", val=np.zeros((3)), units="m")
 
@@ -196,7 +193,7 @@ indep_var_comp.add_output("point_mass_locations", val=point_mass_locations, unit
 
 # Compute the actual W0 to be used within OAS based on the sum of the point mass and other W0 weight
 prob.model.add_subsystem(
-    "W0_comp", om.ExecComp("W0 = W0_without_point_masses + 2 * sum(point_masses)", units="kg"), promotes=["*"]
+    "W0", om.ExecComp("W0 = W0_without_point_masses + 2 * sum(point_masses)", units="kg"), promotes=["*"]
 )
 
 # Loop over each surface in the surfaces list
@@ -273,7 +270,17 @@ for i in range(2):
             prob.model.connect("point_masses", coupled_name + ".point_masses")
             prob.model.connect("point_mass_locations", coupled_name + ".point_mass_locations")
 
+#DORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDOR
+
 prob.model.add_subsystem("Cl", LiftCoeff2D(surface=surf_dict), promotes_outputs=["Cl"])
+prob.model.connect("AS_point_0.coupled.aero_states.wing_sec_forces", "Cl.sec_forces")
+prob.model.connect("AS_point_0.coupled.wing.widths", "Cl.widths")
+prob.model.connect("AS_point_0.coupled.wing.lengths", "Cl.chords")
+prob.model.promotes("Cl", inputs=["alpha"])
+prob.model.promotes("Cl", inputs=["rho"], src_indices=([0]))
+prob.model.promotes("Cl", inputs=["v"], src_indices=([0]))
+
+#DORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDORDOR
 
 prob.model.connect("alpha", "AS_point_0" + ".alpha")
 prob.model.connect("alpha_maneuver", "AS_point_1" + ".alpha")
@@ -298,14 +305,14 @@ prob.model.connect("AS_point_0.fuelburn", "fuel_diff.fuelburn")
 #############################################################################################################################################
 
 prob.model.add_objective("AS_point_0.fuelburn", scaler=1e-5)
-#prob.model.add_design_var("wing.taper", lower=0, upper=0.7)
-#prob.model.add_design_var("wing.twist_cp", lower=np.array([[0, 0, 0, 0]]), upper=np.array([[9, 6, 3, 0]]), scaler=0.1)
-#prob.model.add_design_var("tail.taper", lower=0, upper=0.8)
+prob.model.add_design_var("wing.twist_cp", lower=np.array([[0, 0, 0, 0]]), upper=np.array([[10, 7, 3, 0]]), scaler=0.1)
 prob.model.add_design_var("tail.twist_cp", lower=np.array([[-15, -10, -5, -5]]), upper=np.array([[0, 0, 0, 0]]), scaler=0.1)
-#prob.model.add_design_var("wing.spar_thickness_cp", lower=0.003, upper=0.1, scaler=1e2)
-#prob.model.add_design_var("wing.skin_thickness_cp", lower=0.003, upper=0.1, scaler=1e2)
+#prob.model.add_design_var("wing.spar_thickness_cp", lower=0.003, upper=0.5, scaler=1e2)
+#prob.model.add_design_var("wing.skin_thickness_cp", lower=0.003, upper=0.5, scaler=1e2)
 #prob.model.add_design_var("wing.sweep", lower=0, upper=40)
 #prob.model.add_design_var("wing.geometry.span", lower=1, upper=30, scaler=0.1)
+#prob.model.add_design_var("wing.geometry.chord_cp", lower=np.array([[0.3, 0.5, 1]]), upper=np.array([[2, 2, 2]]))
+#prob.model.add_design_var("tail.geometry.chord_cp", lower=np.array([[0.3, 0.5, 1]]), upper=np.array([[2, 2, 2]]))
 #prob.model.add_design_var("tail.geometry.span", lower=1, upper=12, scaler=0.1)
 prob.model.add_design_var("alpha_maneuver", lower=-15.0, upper=15)
 prob.model.add_design_var("alpha", lower=-15.0, upper=15)
@@ -315,20 +322,24 @@ prob.model.add_design_var("alpha", lower=-15.0, upper=15)
 prob.model.add_constraint("AS_point_0.CM", lower=0.0, upper= 0.01)
 #prob.model.add_constraint("AS_point_0.L_equals_W", lower=0.0, upper= 0.01)
 #prob.model.add_constraint("AS_point_1.L_equals_W", lower=0.0, upper= 0.01)
+
+#OASProblem.add_constraint('thickness_intersects', upper=0.)
+
 #prob.model.add_constraint("AS_point_0.CL", equals=0.5)
 #prob.model.add_constraint("AS_point_0.CM", equals= 0.0)
-prob.model.add_constraint("AS_point_0.L_equals_W", equals= 0.0)
+#prob.model.add_constraint("AS_point_0.L_equals_W", equals= 0.0)
 prob.model.add_constraint("AS_point_1.L_equals_W", equals= 0.0)
 #prob.model.add_constraint("AS_point_1.wing_perf.failure", upper=0.0)
 
-#prob.model.add_constraint("fuel_vol_delta.fuel_vol_delta", lower=0.0)
+prob.model.add_constraint("fuel_vol_delta.fuel_vol_delta", lower=0.0)
+
 #prob.model.add_constraint("Cl", upper=0.6)
-#prob.model.add_design_var("fuel_mass", lower=0.0, upper=2e5, scaler=1e-5)
-#prob.model.add_constraint("fuel_diff", equals=0.0)
+prob.model.add_design_var("fuel_mass", lower=0.0, upper=2e5, scaler=1e-5)
+prob.model.add_constraint("fuel_diff", equals=0.0)
 
 prob.driver = om.ScipyOptimizeDriver()
 prob.driver.options["optimizer"] = "SLSQP" #['SLSQP', 'trust-constr', 'Nelder-Mead']
-prob.driver.options["tol"] = 1e-9
+prob.driver.options["tol"] = 1e-1
 #prob.driver.options["maxiter"] = 10000
 
 recorder = om.SqliteRecorder("aerostruct.db")
@@ -367,8 +378,6 @@ print("alpha =", prob["alpha"])
 print("pull up alpha =", prob["alpha_maneuver"])
 print("sweep =", prob["wing.geometry.sweep"])
 print("span =", prob["wing.geometry.span"])
-print("taper =", prob["wing.taper"])
-print("tail taper =", prob["tail.taper"])
 print("tail span =", prob["tail.geometry.span"])
 print("thickness over chord =", prob["wing.geometry.t_over_c_cp"])
 print("twist_cp =", prob["wing.twist_cp"])
@@ -378,10 +387,16 @@ print("skin thickness =", prob["wing.skin_thickness_cp"])
 print("point mass locations =", prob["point_mass_locations"])
 print("C_D =", prob["AS_point_0.wing_perf.CD"])
 print("C_L =", prob["AS_point_0.wing_perf.CL"])
+print("tail C_D =", prob["AS_point_0.tail_perf.CD"])
+print("tail C_L =", prob["AS_point_0.tail_perf.CL"])
 print("CM vector =", prob["AS_point_0.CM"])
 print("Cl of sections =", prob["Cl"])
 print("AS_point_0.L_equals_W =", prob["AS_point_0.L_equals_W"])
 print("AS_point_1.L_equals_W =", prob["AS_point_1.L_equals_W"])
-
+print("chord_cp =", prob["wing.geometry.chord_cp"])
+print("chord =", prob["AS_point_0.coupled.wing.lengths"])
+print("tail chord =", prob["AS_point_0.coupled.tail.lengths"])
+print(prob["wing.mesh"].shape)
+print(mesh)
 # Clean up
 prob.cleanup()

@@ -142,7 +142,7 @@ indep_var_comp.add_output("point_mass_locations", val=point_mass_locations, unit
 
 # Compute the actual W0 to be used within OAS based on the sum of the point mass and other W0 weight
 prob.model.add_subsystem(
-    "W0_comp", om.ExecComp("W0 = W0_without_point_masses + 2 * sum(point_masses)", units="kg"), promotes=["*"]
+    "W0", om.ExecComp("W0 = W0_without_point_masses + 2 * sum(point_masses)", units="kg"), promotes=["*"]
 )
 
 # docs checkpoint 13
@@ -249,7 +249,6 @@ if surf_dict["distributed_fuel_weight"]:
     prob.model.connect("fuel_mass", "AS_point_1.coupled.wing.struct_states.fuel_mass")
 
 # docs checkpoint 19
-
 comp = om.ExecComp("fuel_diff = (fuel_mass - fuelburn) / fuelburn", units="kg")
 prob.model.add_subsystem("fuel_diff", comp, promotes_inputs=["fuel_mass"], promotes_outputs=["fuel_diff"])
 prob.model.connect("AS_point_0.fuelburn", "fuel_diff.fuelburn")
@@ -352,4 +351,8 @@ print(
     "[kg]",
 )
 
+print("alpha =", prob["alpha"])
+print("pull up alpha =", prob["alpha_maneuver"])
+print("twist =", prob["wing.twist_cp"])
+print(mesh)
 # docs checkpoint 28
