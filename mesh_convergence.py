@@ -18,13 +18,12 @@ import matplotlib.pyplot as plt
 from MDA_mesh import MDA_mesh
 import time
 
-
 # Define test arrays for chordwise and spanwise mesh points
 num_x_array = [2, 3, 5, 7, 9, 11]
-num_y_array = [2, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25]
+num_y_array = [5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25]
 
 
-## Mesh Convergence Analysis for changes in # of chordwise points
+# ## Mesh Convergence Analysis for changes in # of chordwise points
 
 # Initialize arrays to store results for num_x variations
 CDx = np.zeros(len(num_x_array))              # CD array
@@ -37,7 +36,7 @@ Tx_deltas = np.zeros(len(num_x_array)-1)
 # Iterates different num_x and stores values in array
 for i in range(len(num_x_array)):
     start = time.time()
-    CDx[i], WBMx[i] = MDA_mesh(num_x_array[i],7)
+    CDx[i], WBMx[i] = MDA_mesh(num_x_array[i], 7)
     end = time.time()
     Tx[i] = end-start
     
@@ -65,13 +64,12 @@ WBMy_deltas = np.zeros(len(num_y_array)-1)
 Ty = np.zeros(len(num_y_array))               # CPU times array
 Ty_deltas = np.zeros(len(num_y_array)-1)
 
-
 # Iterates different num_y and stores values in array
 for i in range(len(num_y_array)):
     start = time.time()
     CDy[i], WBMy[i] = MDA_mesh(5, num_y_array[i])
     end = time.time()
-    Tx[i] = end-start
+    Ty[i] = end-start
     
 # Iterates through obtained values, determines deltas (in %), and stores in array
 for i in range(len(num_y_array) - 1):
