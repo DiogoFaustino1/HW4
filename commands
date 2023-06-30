@@ -25,3 +25,6 @@ class PanelForcesSurf(om.ExplicitComponent):
         Only the panel forces for one individual lifting surface.
         There is one of these per surface.
     """
+
+if L_equals_W is positive,
+    the aircraft weighs more than the amount of lift it's producing.
