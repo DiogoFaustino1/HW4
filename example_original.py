@@ -265,10 +265,8 @@ prob.model.add_design_var("alpha_maneuver", lower=-15.0, upper=15)
 
 # docs checkpoint 21
 
-prob.model.add_constraint("AS_point_0.CL", equals=0.5)
-
-# docs checkpoint 22
-
+prob.model.add_constraint("AS_point_0.CM", lower=0.0, upper=0.001)
+prob.model.add_constraint("AS_point_0.L_equals_W", equals=0.0)
 prob.model.add_constraint("AS_point_1.L_equals_W", equals=0.0)
 prob.model.add_constraint("AS_point_1.wing_perf.failure", upper=0.0)
 
@@ -354,5 +352,4 @@ print(
 print("alpha =", prob["alpha"])
 print("pull up alpha =", prob["alpha_maneuver"])
 print("twist =", prob["wing.twist_cp"])
-print(mesh)
 # docs checkpoint 28

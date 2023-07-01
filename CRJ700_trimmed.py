@@ -1,16 +1,34 @@
+# -*- coding: utf-8 -*-
+"""
+Assignment 3 - Problem 3 d) i) 
+
+ ========================================================================
+   Instituto Superior Técnico - Aircraft Optimal Design - 2023
+   
+   96375 Filipe Valquaresma
+   filipevalquaresma@tecnico.ulisboa.pt
+   
+   95782 Diogo Faustino
+   diogovicentefaustino@tecnico.ulisboa.pt
+ ========================================================================
+"""
 import numpy as np
 from openaerostruct.geometry.utils import generate_mesh
 from openaerostruct.integration.aerostruct_groups import AerostructGeometry, AerostructPoint
 from openaerostruct.structures.wingbox_fuel_vol_delta import WingboxFuelVolDelta
 import openmdao.api as om
 from openaerostruct.aerodynamics.lift_coeff_2D import LiftCoeff2D
-from sweep_times_span import SweepTimesSpan
 
 # Provide coordinates for a portion of an airfoil for the wingbox cross-section as an nparray with dtype=complex (to work with the complex-step approximation for derivatives).
 # These should be for an airfoil with the chord scaled to 1.
 # We use the 10% to 60% portion of the NASA SC2-0612 airfoil for this case
 # We use the coordinates available from airfoiltools.com. Using such a large number of coordinates is not necessary.
 # The first and last x-coordinates of the upper and lower surfaces must be the same
+
+#upper_x = np.array([0.1,0.125,0.15,0.175,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.575,0.6], dtype="complex128")
+#lower_x = np.array([0.1,0.125,0.15,0.175,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.575,0.6], dtype="complex128")
+#upper_y = np.array([0.08664,0.09388,0.09993,0.10507,0.10943,0.11617,0.12074,0.12344,0.12439,0.12365,0.12112,0.11657,0.11342,0.10965], dtype="complex128")  # noqa: E201, E241
+#lower_y = np.array([-0.06097,-0.06612,-0.07038,-0.07393,-0.0769,-0.0813,-0.08381,-0.08484,-0.08455,-0.08288,-0.0797,-0.07452,-0.07104,-0.06701], dtype="complex128")
 
 upper_x = np.array([0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39, 0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5, 0.51, 0.52, 0.53, 0.54, 0.55, 0.56, 0.57, 0.58, 0.59, 0.6], dtype="complex128")	
 lower_x = np.array([0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39, 0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5, 0.51, 0.52, 0.53, 0.54, 0.55, 0.56, 0.57, 0.58, 0.59, 0.6], dtype="complex128")	
