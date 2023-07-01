@@ -19,11 +19,11 @@ from MDA_mesh import MDA_mesh
 import time
 
 # Define test arrays for chordwise and spanwise mesh points
-num_x_array = [2, 3, 5, 7, 9, 11]
-num_y_array = [5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25]
+num_x_array = [2, 5, 11, 21]
+num_y_array = [5, 11, 21, 41, 61]
 
 
-# ## Mesh Convergence Analysis for changes in # of chordwise points
+## Mesh Convergence Analysis for changes in # of chordwise points
 
 # Initialize arrays to store results for num_x variations
 CDx = np.zeros(len(num_x_array))              # CD array
@@ -46,13 +46,8 @@ for i in range(len(num_x_array) - 1):
     WBMx_deltas[i] = ((WBMx[i + 1] - WBMx[i]) / WBMx[i]) * 100
     Tx_deltas[i] = ((Tx[i + 1] - Tx[i]) / Tx[i]) * 100
     
-print("CD values vs. num_x:", CDx)
-print("CD value differences vs. num_x:", CDx_deltas)
-print("Wingbox mass values vs. num_x:", WBMx)
-print("Wingbox mass value differences vs. num_x:", WBMx_deltas)
-print("CPU time values vs. num_x:", Tx)
-print("CPU time value differences vs. num_x:", Tx_deltas)
-
+    
+    
 
 ## Mesh Convergence Analysis for changes in # of spanwise points
 
@@ -77,16 +72,38 @@ for i in range(len(num_y_array) - 1):
     WBMy_deltas[i] = ((WBMy[i + 1] - WBMy[i]) / WBMy[i]) * 100
     Ty_deltas[i] = ((Ty[i + 1] - Ty[i]) / Ty[i]) * 100
     
-print("CD values vs. num_y:", CDy)
-print("CD value differences vs. num_y:", CDy_deltas)
-print("Wingbox mass values vs. num_y:", WBMy)
-print("Wingbox mass value differences vs. num_y:", WBMy_deltas)
-print("CPU time values vs. num_y:", Ty)
-print("CPU time value differences vs. num_y:", Ty_deltas)
+    
+    
 
-# fig, ax = plt.subplots()
-# ax.plot(num_y_values, CPU_times, marker='o')
-# ax.set_xlabel('num_y')
-# ax.set_ylabel('CPU time')
-# ax.set_title('Variation of CPU time with num_y')
-# plt.show()
+## Prints values that are copyable into LaTeX
+
+# Guarantees all arrays (cols) are the same length
+CDx_deltas = np.insert(CDx_deltas, 0, 999)    # inserts at index 0 a dummy value
+WBMx_deltas = np.insert(WBMx_deltas, 0, 999)
+Tx_deltas = np.insert(Tx_deltas, 0, 999) 
+
+CDy_deltas = np.insert(CDy_deltas, 0, 999)    # inserts at index 0 a dummy value
+WBMy_deltas = np.insert(WBMy_deltas, 0, 999)
+Ty_deltas = np.insert(Ty_deltas, 0, 999) 
+
+
+print("num_x", "CDx", "&", "CDx_deltas", "&", "WBMx", "&", "WBMx_deltas", "&",
+      "Tx", "&", "Tx_deltas", "\ \\")
+for i in range(len(num_x_array)):
+    print(num_x_array[i], "&", CDx[i], "&", CDx_deltas[i], "&", WBMx[i], "&", WBMx_deltas[i], "&",
+          Tx[i], "&", Tx_deltas[i], "\\") 
+    
+print("num_y", "CDy", "&", "CDy_deltas", "&", "WBMy", "&", "WBMy_deltas", "&",
+      "Ty", "&", "Ty_deltas", "\ \\")
+for i in range(len(num_y_array)):
+    print(num_y_array[i], "&", CDy[i], "&", CDy_deltas[i], "&", WBMy[i], "&", WBMy_deltas[i], "&",
+          Ty[i], "&", Ty_deltas[i], "\\")
+    
+    
+    
+# # fig, ax = plt.subplots()
+# # ax.plot(num_y_values, CPU_times, marker='o')
+# # ax.set_xlabel('num_y')
+# # ax.set_ylabel('CPU time')
+# # ax.set_title('Variation of CPU time with num_y')
+# # plt.show()
