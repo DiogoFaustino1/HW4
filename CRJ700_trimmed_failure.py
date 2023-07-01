@@ -178,7 +178,7 @@ prob.model.connect("tail_span", "tail.geometry.span")
 prob.model.connect("taper", "wing.taper")
 prob.model.connect("tail_taper", "tail.taper")
 
-indep_var_comp.add_output("empty_cg", val=np.zeros((3)), units="m")
+indep_var_comp.add_output("empty_cg", val=np.array([2.0, 0, 0]), units="m")
 
 indep_var_comp.add_output("fuel_mass", val=1000.0, units="kg")
 

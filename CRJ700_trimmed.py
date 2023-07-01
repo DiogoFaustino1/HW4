@@ -196,7 +196,7 @@ prob.model.connect("tail_span", "tail.geometry.span")
 prob.model.connect("taper", "wing.taper")
 prob.model.connect("tail_taper", "tail.taper")
 
-indep_var_comp.add_output("empty_cg", val=np.zeros((3)), units="m")
+indep_var_comp.add_output("empty_cg", val=np.array([2.0, 0, 0]), units="m")
 
 indep_var_comp.add_output("fuel_mass", val=1000.0, units="kg")
 
@@ -335,7 +335,7 @@ prob.model.add_design_var("alpha_maneuver", lower=0.0, upper=15)
 #prob.model.add_design_var("point_mass_locations", lower=np.array([[0, 2.0, 1.0]]), upper=np.array([[8, 10.0, 4.0]]))
 
 prob.model.add_constraint("AS_point_0.CM", lower=0.0, upper= 0.001)
-#prob.model.add_constraint("AS_point_0.L_equals_W", equals= 0.0)
+prob.model.add_constraint("AS_point_0.L_equals_W", equals= 0.0)
 prob.model.add_constraint("AS_point_1.L_equals_W", equals= 0.0)
 
 #prob.model.add_constraint("AS_point_1.wing_perf.failure", upper=0.0)

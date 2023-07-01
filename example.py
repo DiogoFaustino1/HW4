@@ -23,7 +23,8 @@ mesh_dict = {
     "num_x": 5,
     "wing_type": "rect",
     "symmetry": True,
-    "root_chord": 4.5
+    "root_chord": 4.5,
+    "span_cos_spacing": 1
 }
 
 mesh = generate_mesh(mesh_dict)
@@ -83,6 +84,7 @@ surf_dict = {
 # Create a dictionary to store options about the surface
 mesh_dict = {"num_y": 21, "num_x": 3, "wing_type": "rect", "symmetry": True, 
     "root_chord": 2,
+    "span_cos_spacing": 1,
     "offset": np.array([15, 0.0, 3.0])}
 
 mesh = generate_mesh(mesh_dict)
@@ -178,7 +180,7 @@ prob.model.connect("tail_span", "tail.geometry.span")
 prob.model.connect("taper", "wing.taper")
 prob.model.connect("tail_taper", "tail.taper")
 
-indep_var_comp.add_output("empty_cg", val=np.zeros((3)), units="m")
+indep_var_comp.add_output("empty_cg", val=np.array([2.0, 0, 0]), units="m")
 
 indep_var_comp.add_output("fuel_mass", val=1000.0, units="kg")
 
@@ -298,18 +300,20 @@ comp = om.ExecComp("fuel_diff = (fuel_mass - fuelburn) / fuelburn", units="kg")
 prob.model.add_subsystem("fuel_diff", comp, promotes_inputs=["fuel_mass"], promotes_outputs=["fuel_diff"])
 prob.model.connect("AS_point_0.fuelburn", "fuel_diff.fuelburn")
 
+prob.model.add_subsystem("sweep_constraint", SweepTimesSpan(), promotes_inputs=["sweep", "span"], promotes_outputs=["sweep_times_span"])
 
 #############################################################################################################################################
 
 prob.model.add_objective("AS_point_0.fuelburn", scaler=1e-5)
 #prob.model.add_objective("AS_point_0.CD")
-#prob.model.add_design_var("wing.twist_cp", lower=np.array([[0, 0]]), upper=np.array([10, 0]), scaler=0.1)
+prob.model.add_design_var("wing.twist_cp", lower=np.array([[0, 0]]), upper=np.array([10, 0]), scaler=0.1)
 prob.model.add_design_var("tail.twist_cp", lower=np.array([[-10, -10]]), upper=np.array([[10, 10]]), scaler=0.1)
 prob.model.add_design_var("wing.spar_thickness_cp", lower=0.003, upper=0.1, scaler=1e2)
 prob.model.add_design_var("wing.skin_thickness_cp", lower=0.003, upper=0.1, scaler=1e2)
-#prob.model.add_design_var("wing.geometry.span", lower=15, upper=30, scaler=0.1)
+prob.model.add_design_var("wing.geometry.span", lower=15, upper=30, scaler=0.1)
 #prob.model.add_design_var("tail.geometry.span", lower=6, upper=12, scaler=0.1)
-#prob.model.add_design_var("wing.taper", lower=0.1, upper=0.5)
+prob.model.add_design_var("wing.taper", lower=0.25, upper=0.5)
+#prob.model.add_design_var("wing.sweep", lower=10, upper=40)
 #prob.model.add_design_var("tail.taper", lower=0.1, upper=0.5)
 prob.model.add_design_var("alpha", lower=0.0, upper=15)
 prob.model.add_design_var("alpha_maneuver", lower=0.0, upper=15)
@@ -320,10 +324,10 @@ prob.model.add_constraint("AS_point_0.L_equals_W", equals= 0.0)
 prob.model.add_constraint("AS_point_1.L_equals_W", equals= 0.0)
 
 prob.model.add_constraint("AS_point_1.wing_perf.failure", upper=0.0)
-
+prob.model.add_constraint("sweep_times_span", lower=100, upper=697.2)
 prob.model.add_constraint("fuel_vol_delta.fuel_vol_delta", lower=0.0)
 
-#prob.model.add_constraint("Cl", upper=0.6)
+prob.model.add_constraint("Cl", upper=0.6)
 prob.model.add_design_var("fuel_mass", lower=0.0, upper=2e5, scaler=1e-5)
 prob.model.add_constraint("fuel_diff", equals=0.0)
 
@@ -388,5 +392,6 @@ print("AS_point_0.L_equals_W =", prob["AS_point_0.L_equals_W"])
 print("AS_point_1.L_equals_W =", prob["AS_point_1.L_equals_W"])
 print("chord =", prob["AS_point_0.coupled.wing.lengths"])
 print("tail chord =", prob["AS_point_0.coupled.tail.lengths"])
+print("Constraint = ", sweep_constraint)
 # Clean up
 prob.cleanup()
