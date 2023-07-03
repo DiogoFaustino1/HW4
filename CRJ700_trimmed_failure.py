@@ -44,8 +44,8 @@ surf_dict = {
     "span": 23.24,
     "root_chord": 4.5,
     "taper": 0.3,
-    "spar_thickness_cp": np.array([0.02413508, 0.04315824]),  # [m]
-    "skin_thickness_cp": np.array([0.09564784, 0.15670857]),  # [m]
+    "spar_thickness_cp": np.array([0.003, 0.003]),  # [m]
+    "skin_thickness_cp": np.array([0.003, 0.00438812]),  # [m]
     "t_over_c_cp": np.array([0.12]),
     "original_wingbox_airfoil_t_over_c": 0.12,
     "sweep": 30,
@@ -109,7 +109,7 @@ surf_dict2 = {
     "data_x_lower": lower_x,
     "data_y_upper": upper_y,
     "data_y_lower": lower_y,
-    "twist_cp": np.array([0.0, 0.0]),  # [deg]
+    "twist_cp": np.array([1.12793689, 2.19900881]),  # [deg]
     "spar_thickness_cp": np.array([0.004, 0.01]),  # [m]
     "skin_thickness_cp": np.array([0.005, 0.025]),  # [m]
     "t_over_c_cp": np.array([0.12]),
@@ -165,8 +165,8 @@ indep_var_comp.add_output("R", val=3.120e6, units="m")
 indep_var_comp.add_output("W0_without_point_masses", val=19731 + surf_dict["Wf_reserve"], units="kg")
 
 indep_var_comp.add_output("load_factor", val=np.array([1.0, 2.5]))
-indep_var_comp.add_output("alpha", val=0, units="deg")
-indep_var_comp.add_output("alpha_maneuver", val=7.79046096, units="deg")
+indep_var_comp.add_output("alpha", val=3.89941513, units="deg")
+indep_var_comp.add_output("alpha_maneuver", val=3.61492053, units="deg")
 indep_var_comp.add_output("sweep", 30, units="deg")
 indep_var_comp.add_output("span", 23.24, units="m")
 indep_var_comp.add_output("tail_span", 8.54, units="m")

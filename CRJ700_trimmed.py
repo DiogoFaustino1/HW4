@@ -127,7 +127,7 @@ surf_dict2 = {
     "data_x_lower": lower_x,
     "data_y_upper": upper_y,
     "data_y_lower": lower_y,
-    "twist_cp": np.array([0.0, 0.0]),  # [deg]
+    "twist_cp": np.array([0, 0]),  # [deg]
     "spar_thickness_cp": np.array([0.004, 0.01]),  # [m]
     "skin_thickness_cp": np.array([0.005, 0.025]),  # [m]
     "t_over_c_cp": np.array([0.12]),
@@ -184,7 +184,7 @@ indep_var_comp.add_output("W0_without_point_masses", val=19731 + surf_dict["Wf_r
 
 indep_var_comp.add_output("load_factor", val=np.array([1.0, 2.5]))
 indep_var_comp.add_output("alpha", val=0, units="deg")
-indep_var_comp.add_output("alpha_maneuver", val=7.79046096, units="deg")
+indep_var_comp.add_output("alpha_maneuver", val=0, units="deg")
 indep_var_comp.add_output("sweep", 30, units="deg")
 indep_var_comp.add_output("span", 23.24, units="m")
 indep_var_comp.add_output("tail_span", 8.54, units="m")

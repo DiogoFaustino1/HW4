@@ -45,8 +45,8 @@ surf_dict = {
     "span": 23.24,
     "root_chord": 4.5,
     "taper": 0.3,
-    "spar_thickness_cp": np.array([0.02413508, 0.04315824]),  # [m]
-    "skin_thickness_cp": np.array([0.09564784, 0.15670857]),  # [m]
+    "spar_thickness_cp": np.array([0.003, 0.003]),  # [m]
+    "skin_thickness_cp": np.array([0.003, 0.00442718]),  # [m]
     "t_over_c_cp": np.array([0.12]),
     "original_wingbox_airfoil_t_over_c": 0.12,
     "sweep": 30,
@@ -111,7 +111,7 @@ surf_dict2 = {
     "data_x_lower": lower_x,
     "data_y_upper": upper_y,
     "data_y_lower": lower_y,
-    "twist_cp": np.array([0.0, 0.0]),  # [deg]
+    "twist_cp": np.array([1.20011518, 2.3368427]),  # [deg]
     "spar_thickness_cp": np.array([0.004, 0.01]),  # [m]
     "skin_thickness_cp": np.array([0.005, 0.025]),  # [m]
     "t_over_c_cp": np.array([0.12]),
@@ -167,8 +167,8 @@ indep_var_comp.add_output("R", val=3.120e6, units="m")
 indep_var_comp.add_output("W0_without_point_masses", val=19731 + surf_dict["Wf_reserve"], units="kg")
 
 indep_var_comp.add_output("load_factor", val=np.array([1.0, 2.5]))
-indep_var_comp.add_output("alpha", val=0, units="deg")
-indep_var_comp.add_output("alpha_maneuver", val=7.79046096, units="deg")
+indep_var_comp.add_output("alpha", val=4.10241351, units="deg")
+indep_var_comp.add_output("alpha_maneuver", val=3.78513981, units="deg")
 indep_var_comp.add_output("sweep", 30, units="deg")
 indep_var_comp.add_output("span", 23.24, units="m")
 indep_var_comp.add_output("tail_span", 8.54, units="m")
@@ -313,7 +313,7 @@ prob.model.add_design_var("wing.skin_thickness_cp", lower=0.003, upper=0.1, scal
 prob.model.add_design_var("wing.geometry.span", lower=15, upper=30, scaler=0.1)
 #prob.model.add_design_var("tail.geometry.span", lower=6, upper=12, scaler=0.1)
 prob.model.add_design_var("wing.taper", lower=0.25, upper=0.5)
-#prob.model.add_design_var("wing.sweep", lower=10, upper=40)
+prob.model.add_design_var("wing.sweep", lower=10, upper=40)
 #prob.model.add_design_var("tail.taper", lower=0.1, upper=0.5)
 prob.model.add_design_var("alpha", lower=0.0, upper=15)
 prob.model.add_design_var("alpha_maneuver", lower=0.0, upper=15)
@@ -324,7 +324,7 @@ prob.model.add_constraint("AS_point_0.L_equals_W", equals= 0.0)
 prob.model.add_constraint("AS_point_1.L_equals_W", equals= 0.0)
 
 prob.model.add_constraint("AS_point_1.wing_perf.failure", upper=0.0)
-prob.model.add_constraint("sweep_times_span", lower=100, upper=697.2)
+#prob.model.add_constraint("sweep_times_span", lower=100, upper=697.2)
 prob.model.add_constraint("fuel_vol_delta.fuel_vol_delta", lower=0.0)
 
 prob.model.add_constraint("Cl", upper=0.6)
@@ -392,6 +392,6 @@ print("AS_point_0.L_equals_W =", prob["AS_point_0.L_equals_W"])
 print("AS_point_1.L_equals_W =", prob["AS_point_1.L_equals_W"])
 print("chord =", prob["AS_point_0.coupled.wing.lengths"])
 print("tail chord =", prob["AS_point_0.coupled.tail.lengths"])
-print("Constraint = ", sweep_constraint)
+print("Constraint = ", prob["sweep_constraint.sweep_times_span"])
 # Clean up
 prob.cleanup()
